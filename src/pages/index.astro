@@ -1,14 +1,8 @@
 ---
 import Terminal from "../layouts/Terminal.astro";
 import Prompt from "../components/Prompt.astro";
-import { getCollection, getEntry } from "astro:content";
-
-const about = await getEntry("about", "index");
-if (!about) {
-  throw new Error("missing about content entry");
-}
-const { data } = about;
-const { Content } = await about.render();
+import AboutContent from "../components/AboutContent.astro";
+import { getCollection } from "astro:content";
 
 const projectSlugs = (await getCollection("projects")).map((p) => p.slug);
 ---
@@ -24,21 +18,13 @@ const projectSlugs = (await getCollection("projects")).map((p) => p.slug);
   <div data-intro>
     <Prompt path="~" command="cat about.md" />
     <div class="cat-output">
-      <p><span class="highlight">{data.name}</span> — {data.role}</p>
-      <Content />
-      <p style="margin-top:12px;">
-        <span class="dim">email:</span>
-        <a href="mailto:iker@iker.sh">iker@iker.sh</a> &nbsp; <span class="dim"
-          >github:</span
-        >
-        <a href="https://github.com/Ikerlb/">Ikerlb</a> &nbsp; <span class="dim"
-          >linkedin:</span
-        >
-        <a href="https://www.linkedin.com/in/iker-lissarrague/"
-          >iker-lissarrague</a
-        >
-      </p>
+      <AboutContent />
     </div>
+  </div>
+
+  <!-- Rendered source for the `cat about.md` REPL command. -->
+  <div data-about-content hidden>
+    <AboutContent />
   </div>
 
   <div class="repl" data-repl data-projects={JSON.stringify(projectSlugs)}>

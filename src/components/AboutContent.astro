@@ -1,0 +1,21 @@
+---
+import { getEntry } from "astro:content";
+
+const about = await getEntry("about", "index");
+if (!about) {
+  throw new Error("missing about content entry");
+}
+const { data } = about;
+const { Content } = await about.render();
+---
+
+<p><span class="highlight">{data.name}</span> — {data.role}</p>
+<Content />
+<p style="margin-top:12px;">
+  <span class="dim">email:</span>
+  <a href="mailto:iker@iker.sh">iker@iker.sh</a>
+  &nbsp; <span class="dim">github:</span>
+  <a href="https://github.com/Ikerlb/">Ikerlb</a>
+  &nbsp; <span class="dim">linkedin:</span>
+  <a href="https://www.linkedin.com/in/iker-lissarrague/">iker-lissarrague</a>
+</p>

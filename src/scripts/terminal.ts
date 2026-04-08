@@ -324,11 +324,19 @@ const REPL_COMMANDS: Record<string, CommandHandler> = {
       return;
     }
     if (f === "about.md" || f === "~/about.md" || f === "./about.md") {
-      appendReplLine(
-        ctx.historyEl,
-        `<span class="dim">(about.md is rendered above — scroll up)</span>`,
-        true,
-      );
+      const src = document.querySelector<HTMLElement>("[data-about-content]");
+      if (src) {
+        const div = document.createElement("div");
+        div.className = "repl-output cat-output";
+        div.innerHTML = src.innerHTML;
+        ctx.historyEl.appendChild(div);
+      } else {
+        appendReplLine(
+          ctx.historyEl,
+          `<span class="dim">(about.md is rendered above — scroll up)</span>`,
+          true,
+        );
+      }
     } else {
       appendReplLine(
         ctx.historyEl,

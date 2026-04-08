@@ -14,13 +14,14 @@ links:
 
 if you are not familiar with [advent of code](https://adventofcode.com), it is a series of fun little programming puzzles (one is released per day and difficulty usually increases as days pass). a lot of programmers solve them and the community is so vibrant that i highly recommend checking it out.
 
-jump to: [day 1](#day-1) · [day 2](#day-2) · [day 3](#day-3) · [day 4](#day-4) · [day 5](#day-5) · [day 6](#day-6) · [day 7](#day-7) · [day 8](#day-8) · [day 9](#day-9) · [day 10](#day-10) · [day 11](#day-11) · [day 12](#day-12)
+twelve days, twelve write-ups. click any to expand.
 
-### day 1
+<details class="day">
+<summary>day 1 — sliding window (python)</summary>
 
-you can find the description [here](https://adventofcode.com/2021/day/1) and the code [here](https://github.com/Ikerlb/AoC2021/tree/master/1).
+description [here](https://adventofcode.com/2021/day/1), code [here](https://github.com/Ikerlb/AoC2021/tree/master/1).
 
-my solution uses a very simple (fixed size) sliding window technique, with the first part being a size 1 window and the second part a size 3 window.
+a very simple fixed-size sliding window. part one uses a window of 1, part two a window of 3.
 
 ```python
 def solve(l: [int], k: int):
@@ -33,11 +34,14 @@ def solve(l: [int], k: int):
     return res
 ```
 
-### day 2
+</details>
+
+<details class="day">
+<summary>day 2 — submarine simulation (clojure)</summary>
 
 description [here](https://adventofcode.com/2021/day/2), code [here](https://github.com/Ikerlb/AoC2021/tree/master/2).
 
-for part one, it is a very straight forward simulation.
+part one is a straightforward simulation:
 
 ```clojure
 (defn step-part1 [x y cmd i]
@@ -47,7 +51,7 @@ for part one, it is a very straight forward simulation.
     :else [x (+ y i)]))
 ```
 
-part two is very similar but we also need to keep track of the aim.
+part two is similar but we also need to keep track of the aim.
 
 ```clojure
 (defn step-part2 [x y aim cmd i]
@@ -57,11 +61,14 @@ part two is very similar but we also need to keep track of the aim.
     :else [x y (- aim i)]))
 ```
 
-### day 3
+</details>
+
+<details class="day">
+<summary>day 3 — bit counting (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/3), code [here](https://github.com/Ikerlb/AoC2021/tree/master/3).
 
-to solve each part, we basically need a function that can give us the number of bits turned on for a certain digit index:
+both parts boil down to a function that counts how many numbers have a given bit set:
 
 ```python
 def count_by_index(nums, i):
@@ -73,7 +80,7 @@ def count_by_index(nums, i):
     return ones, total - ones
 ```
 
-you can get the gamma rate by simply iterating over each possible index and assigning that index to be the digit of the **most** common digit of all numbers for that index. analogously, you get epsilon rate by iterating over each possible index and assigning that index to be the digit of the **least** common digit.
+the gamma rate is built by taking the **most** common digit at each index; the epsilon rate by taking the **least** common one.
 
 ```python
 # md is the max index of digits
@@ -86,7 +93,7 @@ def rate(nums, f, md):
     return res
 ```
 
-for the second part, you need to keep filtering by the most or least common digit for each index (depending on the measurement) and return the number that remains.
+for the second part, keep filtering by the most or least common digit at each index until only one number remains.
 
 ```python
 # md is the max index of digits
@@ -100,13 +107,14 @@ def filter_by(nums, f, md):
     return nums.pop()
 ```
 
-### day 4
+</details>
+
+<details class="day">
+<summary>day 4 — bingo simulation (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/4), code [here](https://github.com/Ikerlb/AoC2021/tree/master/4).
 
-ok. this was fun!
-
-for both parts, i just simulated all boards with a class. only interesting thing is i kept track of all numbers contained in a board and added a rows and cols array, containing how many remaining numbers until a bingo in each row/col. this made it very easy to know if marking a number in a board yields a bingo.
+ok, this was fun! i simulated all boards with a class. the trick was keeping a `rows` and `cols` array on each board with the number of remaining cells until a bingo, so marking a number is O(1) and you immediately know if it triggered a win.
 
 ```python
 class Board:
@@ -127,13 +135,16 @@ class Board:
         return self.rows[r] == 0 or self.cols[c] == 0
 ```
 
-for part one, just mark each board if it contains the number. if either the row or the column is all marked that board is the solution. for part two, just remove each board as it gets a bingo until you have no more boards left. the answer is the last board you removed.
+for part one, mark each board with the called number and stop on the first bingo. for part two, drop boards as they win and the answer is the last one removed.
 
-### day 5
+</details>
+
+<details class="day">
+<summary>day 5 — segment counting (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/5), code [here](https://github.com/Ikerlb/AoC2021/tree/master/5).
 
-nothing interesting for this problem. just walk from p1 to p2 and add all the points you walk to a counter. for part one, simply filter those who are diagonal. for part two, don't filter.
+nothing fancy: walk from p1 to p2 and add each cell to a counter. for part one, filter out the diagonals; for part two, don't.
 
 ```python
 def span(p1, p2):
@@ -154,13 +165,14 @@ def count_points(segments):
     return c
 ```
 
-### day 6
+</details>
+
+<details class="day">
+<summary>day 6 — matrix exponentiation (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/6), code [here](https://github.com/Ikerlb/AoC2021/tree/master/6).
 
-this was very fun!
-
-my first solution consisted on a simple simulation on a double ended queue. this solution is linear on the number of days and it handles both parts without a problem.
+this was very fun! my first solution was a linear-time simulation with a deque, which handles both parts comfortably:
 
 ```python
 # mutates q
@@ -171,9 +183,9 @@ def step(q):
     q.rotate(-1)
 ```
 
-however, it occurred to me while working that i could simply simulate a single step of this as a matrix multiplication. and well, if you have repeated matrix multiplication, you have matrix exponentiation. and if you have matrix exponentiation you have **fast** matrix exponentiation.
+then it occurred to me that a single step can be modeled as a matrix multiplication. and if you have repeated matrix multiplication, you have matrix exponentiation. and if you have matrix exponentiation, you have **fast** matrix exponentiation.
 
-the (relatively) hard part of this is modeling the matrix but if you stare at the problem long enough you'll come up with the following matrix (or this matrix transposed):
+the (relatively) hard part was modeling the matrix, but staring at the problem long enough yields:
 
 ```python
 [[0, 0, 0, 0, 0, 0, 1, 0, 1],
@@ -187,7 +199,7 @@ the (relatively) hard part of this is modeling the matrix but if you stare at th
  [0, 0, 0, 0, 0, 0, 0, 1, 0]]
 ```
 
-so my second solution looks like this and its time complexity is logarithmic on the number of days (aka blazing fast):
+so the second solution is logarithmic on the number of days (aka blazing fast):
 
 ```python
 def prod(X, Y):
@@ -204,7 +216,10 @@ def _pow(m, k):
         return prod(half, prod(half, m))
 ```
 
-### day 7
+</details>
+
+<details class="day">
+<summary>day 7 — median &amp; average (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/7), code [here](https://github.com/Ikerlb/AoC2021/tree/master/7).
 
@@ -213,7 +228,7 @@ def cost(l, n, f):
     return sum(f(e, n) for e in l)
 ```
 
-for the first part, the solution is the median.
+for the first part, the answer is the median:
 
 ```python
 def median(l):
@@ -224,7 +239,7 @@ def part1(l):
     return cost(l, m, lambda x, y: abs(x - y))
 ```
 
-for the second part, the solution is the average.
+for the second part, it's the average (try both floor and ceil):
 
 ```python
 def part2(l):
@@ -233,21 +248,25 @@ def part2(l):
     return min(cost(l, ceil(avg), f), cost(l, floor(avg), f))
 ```
 
-### day 8
+</details>
+
+<details class="day">
+<summary>day 8 — seven-segment permutations (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/8), code [here](https://github.com/Ikerlb/AoC2021/tree/master/8).
 
-for the first part, simply count the number of words in the output section that have lengths 2, 3, 4 or 7.
+for part one, count the words in the output section with lengths 2, 3, 4 or 7.
 
-for the second part, i couldn't think of a better solution than just try permutations until the wires make sense.
+for part two, i couldn't think of anything cleverer than trying permutations until the wires line up.
 
-### day 9
+</details>
+
+<details class="day">
+<summary>day 9 — floodfill (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/9), code [here](https://github.com/Ikerlb/AoC2021/tree/master/9).
 
-for part one, simply count the number of cells in which all neighbors are strictly greater.
-
-for part two, floodfill until you have previously visited or until you find a height 9.
+for part one, count cells whose neighbors are all strictly greater. for part two, floodfill until you've visited a cell or hit a 9.
 
 ```python
 def floodfill(grid, r, c):
@@ -259,11 +278,14 @@ def floodfill(grid, r, c):
     return s
 ```
 
-### day 10
+</details>
+
+<details class="day">
+<summary>day 10 — stack-based parsing (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/10), code [here](https://github.com/Ikerlb/AoC2021/tree/master/10).
 
-using a stack, you can figure out exactly where the string becomes invalid, if at all.
+a stack tells you exactly where a string becomes invalid, if at all:
 
 ```python
 m = {"{":"}", "(":")", "[":"]", "<":">"}
@@ -279,7 +301,7 @@ def parse(l):
     return s, None
 ```
 
-if the stack is not empty at the end, it means it is incomplete and the only way to complete it would be to reverse the stack and append it to the original string.
+if the stack is non-empty at the end, the string was incomplete and the only way to complete it is to reverse the stack and append it.
 
 ```python
 mm = {"(":1, "[":2, "{":3, "<":4}
@@ -292,13 +314,14 @@ def encode(s):
     return rr
 ```
 
-### day 11
+</details>
+
+<details class="day">
+<summary>day 11 — flashing octopuses (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/11), code [here](https://github.com/Ikerlb/AoC2021/tree/master/11).
 
-the only thing we have to be careful about in this problem is avoid counting octopuses more than once. but otherwise, just simulate the steps.
-
-here's the step function i used, that returns the number of flashes that happened during each time period:
+just simulate the steps; the only thing to be careful about is not counting an octopus more than once per step.
 
 ```python
 # mutates grid
@@ -323,11 +346,14 @@ def step(grid):
     return flashes
 ```
 
-### day 12
+</details>
+
+<details class="day">
+<summary>day 12 — dfs path counting (python)</summary>
 
 description [here](https://adventofcode.com/2021/day/12), code [here](https://github.com/Ikerlb/AoC2021/tree/master/12).
 
-as long as there are no upper-cased direct loops (ie, A - B), simple dfs works for both cases.
+as long as there are no upper-cased direct loops (eg `A - B`), simple dfs works for both parts.
 
 for part 1:
 
@@ -362,3 +388,5 @@ def dfs2(g, node, visited, used):
             visited.discard(nn)
     return res
 ```
+
+</details>

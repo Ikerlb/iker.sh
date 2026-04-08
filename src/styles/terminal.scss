@@ -236,6 +236,59 @@ a {
     height: auto;
     margin: 8px 0;
   }
+
+  // Collapsible day blocks (used by the AoC project page).
+  details.day {
+    margin: 2px 0;
+
+    > summary {
+      cursor: pointer;
+      color: var(--fg);
+      list-style: none;
+      padding: 2px 0;
+      user-select: none;
+      font-weight: 700;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: "▸";
+        color: var(--fg-dim);
+        display: inline-block;
+        width: 2ch;
+        font-weight: 400;
+        transition: color 0.1s;
+      }
+
+      &:hover {
+        color: var(--yellow);
+
+        &::before {
+          color: var(--yellow);
+        }
+      }
+    }
+
+    &[open] {
+      margin: 12px 0 20px;
+
+      > summary {
+        margin-bottom: 8px;
+        color: var(--orange);
+
+        &::before {
+          content: "▾";
+          color: var(--orange);
+        }
+      }
+    }
+
+    > :not(summary) {
+      margin-left: 2ch;
+    }
+  }
 }
 
 // ── File listing ──

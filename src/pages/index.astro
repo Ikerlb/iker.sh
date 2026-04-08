@@ -1,7 +1,7 @@
 ---
 import Terminal from "../layouts/Terminal.astro";
 import Prompt from "../components/Prompt.astro";
-import { getEntry } from "astro:content";
+import { getCollection, getEntry } from "astro:content";
 
 const about = await getEntry("about", "index");
 if (!about) {
@@ -9,13 +9,16 @@ if (!about) {
 }
 const { data } = about;
 const { Content } = await about.render();
+
+const projectSlugs = (await getCollection("projects")).map((p) => p.slug);
 ---
 
 <Terminal title="iker.sh" active="about">
   <div class="output dim" data-motd style="margin-bottom: 16px;">
     welcome to iker.sh<br />
-    last login: Mon Mar 30 09:42:13 2026 from 192.168.1.1<br />
-    type <span class="accent">help</span> or use the tabs above to navigate.
+    last login: Tue Apr 7 09:42:13 2026 from 192.168.1.1<br />
+    type <span class="accent" data-repl-cmd="help">help</span> or use the tabs above
+    to navigate.
   </div>
 
   <div data-intro>
@@ -35,6 +38,27 @@ const { Content } = await about.render();
           >iker-lissarrague</a
         >
       </p>
+    </div>
+  </div>
+
+  <div class="repl" data-repl data-projects={JSON.stringify(projectSlugs)}>
+    <div class="repl-history" data-repl-history></div>
+    <div class="prompt-line repl-input-line">
+      <span class="prompt">
+        <span class="user">iker</span>@<span class="host">iker.sh</span>:<span
+          class="path">~</span
+        ><span class="dollar"> $</span>
+      </span>
+      <input
+        type="text"
+        class="repl-input"
+        data-repl-input
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-label="terminal input"
+      />
     </div>
   </div>
 </Terminal>

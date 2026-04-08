@@ -3,11 +3,6 @@
 // so the site degrades gracefully without JS.
 
 const SESSION_KEY = "iker.sh:intro-played";
-const TAB_PATHS: Record<string, string> = {
-  "/": "~",
-  "/projects/": "~/projects",
-  "/reading/": "~/reading",
-};
 
 function init(): void {
   setupIntro();
@@ -182,20 +177,6 @@ async function loadUrl(href: string, push: boolean): Promise<void> {
     const newTitle = doc.querySelector("title")?.textContent;
     if (newTitle) document.title = newTitle;
 
-    // Update title bar path.
-    const newTitleText = doc.querySelector<HTMLElement>("[data-title-text]");
-    const currentTitleText =
-      document.querySelector<HTMLElement>("[data-title-text]");
-    if (newTitleText && currentTitleText) {
-      currentTitleText.textContent = newTitleText.textContent;
-    } else {
-      const url = new URL(href);
-      const path = TAB_PATHS[url.pathname] ?? guessPath(url.pathname);
-      if (currentTitleText) {
-        currentTitleText.textContent = `iker@iker.sh: ${path}`;
-      }
-    }
-
     // Update active tab.
     const newActive = doc
       .querySelector(".tab.active")
@@ -215,15 +196,6 @@ async function loadUrl(href: string, push: boolean): Promise<void> {
   } catch {
     window.location.href = href;
   }
-}
-
-function guessPath(pathname: string): string {
-  if (pathname.startsWith("/projects/")) {
-    const slug = pathname.replace(/^\/projects\//, "").replace(/\/$/, "");
-    return slug ? `~/projects/${slug}` : "~/projects";
-  }
-  if (pathname.startsWith("/reading")) return "~/reading";
-  return "~";
 }
 
 if (document.readyState === "loading") {

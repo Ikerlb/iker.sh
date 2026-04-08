@@ -1,18 +1,15 @@
 ---
-import TitleBar from "../components/TitleBar.astro";
 import TabBar from "../components/TabBar.astro";
 import "../styles/terminal.scss";
 
 interface Props {
   title?: string;
-  path: string;
   active: "about" | "projects" | "reading";
   description?: string;
 }
 
 const {
   title = "iker.sh",
-  path,
   active,
   description = "iker lissarrague's personal site — software engineer",
 } = Astro.props;
@@ -34,7 +31,6 @@ const {
     />
   </head>
   <body>
-    <TitleBar path={path} />
     <TabBar active={active} />
 
     <main class="pane-container" data-pane-container>

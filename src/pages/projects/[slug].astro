@@ -54,15 +54,10 @@ const entries: FileEntry[] = allProjects.map((p) => ({
   isDir: true,
 }));
 
-const path = `~/projects/${project.data.name}`;
 const dateLabel = fmtDate(project.data.date);
 ---
 
-<Terminal
-  title={`${project.data.title} | iker.sh`}
-  path={path}
-  active="projects"
->
+<Terminal title={`${project.data.title} | iker.sh`} active="projects">
   <Prompt path="~" command={`cat ~/projects/${project.data.name}/README.md`} />
   <ProjectCard
     title={project.data.title}

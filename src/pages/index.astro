@@ -1,0 +1,40 @@
+---
+import Terminal from "../layouts/Terminal.astro";
+import Prompt from "../components/Prompt.astro";
+import { getEntry } from "astro:content";
+
+const about = await getEntry("about", "index");
+if (!about) {
+  throw new Error("missing about content entry");
+}
+const { data } = about;
+const { Content } = await about.render();
+---
+
+<Terminal title="iker.sh" path="~" active="about">
+  <div class="output dim" data-motd style="margin-bottom: 16px;">
+    welcome to iker.sh<br />
+    last login: Mon Mar 30 09:42:13 2026 from 192.168.1.1<br />
+    type <span class="accent">help</span> or use the tabs above to navigate.
+  </div>
+
+  <div data-intro>
+    <Prompt path="~" command="cat about.md" />
+    <div class="cat-output">
+      <p><span class="highlight">{data.name}</span> — {data.role}</p>
+      <Content />
+      <p style="margin-top:12px;">
+        <span class="dim">email:</span>
+        <a href="mailto:iker@iker.sh">iker@iker.sh</a> &nbsp; <span class="dim"
+          >github:</span
+        >
+        <a href="https://github.com/Ikerlb/">Ikerlb</a> &nbsp; <span class="dim"
+          >linkedin:</span
+        >
+        <a href="https://www.linkedin.com/in/iker-lissarrague/"
+          >iker-lissarrague</a
+        >
+      </p>
+    </div>
+  </div>
+</Terminal>

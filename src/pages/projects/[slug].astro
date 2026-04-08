@@ -1,0 +1,81 @@
+---
+import Terminal from "../../layouts/Terminal.astro";
+import Prompt from "../../components/Prompt.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import FileListing from "../../components/FileListing.astro";
+import type { FileEntry } from "../../components/FileListing.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+
+const { project } = Astro.props;
+const { Content } = await project.render();
+
+const allProjects = (await getCollection("projects")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function fmtDate(d: Date): string {
+  const m = months[d.getUTCMonth()];
+  const day = String(d.getUTCDate()).padStart(2, " ");
+  return `${m} ${day} ${d.getUTCFullYear()}`;
+}
+
+const entries: FileEntry[] = allProjects.map((p) => ({
+  name: p.data.name,
+  size: p.data.size,
+  date: fmtDate(p.data.date),
+  href: `/projects/${p.slug}/`,
+  isDir: true,
+}));
+
+const path = `~/projects/${project.data.name}`;
+const dateLabel = fmtDate(project.data.date);
+---
+
+<Terminal
+  title={`${project.data.title} | iker.sh`}
+  path={path}
+  active="projects"
+>
+  <Prompt path="~" command={`cat ~/projects/${project.data.name}/README.md`} />
+  <ProjectCard
+    title={project.data.title}
+    date={dateLabel}
+    size={project.data.size}
+    tags={project.data.tags}
+    links={project.data.links}
+  >
+    <Content />
+  </ProjectCard>
+
+  <Prompt path="~" command="ls -la ~/projects/" />
+  <div class="output">
+    <FileListing entries={entries} />
+  </div>
+</Terminal>

@@ -1,0 +1,52 @@
+---
+import Terminal from "../layouts/Terminal.astro";
+import Prompt from "../components/Prompt.astro";
+import { getCollection } from "astro:content";
+
+const books = await getCollection("reading");
+
+const grouped = books.reduce<
+  Record<number, { title: string; author: string; status: string }[]>
+>((acc, b) => {
+  (acc[b.data.year] ??= []).push({
+    title: b.data.title,
+    author: b.data.author,
+    status: b.data.status,
+  });
+  return acc;
+}, {});
+
+const years = Object.keys(grouped)
+  .map(Number)
+  .sort((a, b) => b - a);
+
+const statusGlyph: Record<string, string> = {
+  done: "✓",
+  reading: "~",
+  abandoned: "✗",
+};
+---
+
+<Terminal title="reading | iker.sh" path="~/reading" active="reading">
+  <Prompt path="~" command="cat reading_log.txt" />
+  <div class="output">
+    {
+      years.map((year) => (
+        <>
+          <div class="section-header">── {year} ──</div>
+          <div class="reading-table">
+            {grouped[year].map((b) => (
+              <div class="entry">
+                <span class:list={["status", b.status]}>
+                  {statusGlyph[b.status] ?? "·"}
+                </span>
+                <span class="book-title">{b.title}</span>
+                <span class="book-author dim">{b.author}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ))
+    }
+  </div>
+</Terminal>

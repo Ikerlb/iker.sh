@@ -1,0 +1,60 @@
+---
+import Terminal from "../../layouts/Terminal.astro";
+import Prompt from "../../components/Prompt.astro";
+import FileListing from "../../components/FileListing.astro";
+import type { FileEntry } from "../../components/FileListing.astro";
+import { getCollection } from "astro:content";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function fmtDate(d: Date): string {
+  const m = months[d.getUTCMonth()];
+  const day = String(d.getUTCDate()).padStart(2, " ");
+  return `${m} ${day} ${d.getUTCFullYear()}`;
+}
+
+const entries: FileEntry[] = projects.map((p) => ({
+  name: p.data.name,
+  size: p.data.size,
+  date: fmtDate(p.data.date),
+  href: `/projects/${p.slug}/`,
+  isDir: true,
+}));
+---
+
+<Terminal title="projects | iker.sh" path="~/projects" active="projects">
+  <Prompt path="~" command="cat ~/projects/README.md" />
+  <div class="cat-output" style="margin-bottom:24px;">
+    <p>these are some of the projects i work on in my spare time.</p>
+    <p>
+      most of them come from wanting to learn something new — a language, a
+      rendering technique, a cloud service — and building something tangible
+      with it.
+    </p>
+  </div>
+
+  <Prompt path="~" command="ls -la ~/projects/" />
+  <div class="output">
+    <FileListing entries={entries} />
+  </div>
+  <div class="dim" style="font-size:13px; margin-top:8px;">
+    click a project to view details
+  </div>
+</Terminal>

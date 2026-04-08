@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      astro:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+          - "astro-*"
+          - "eslint-plugin-astro"
+          - "prettier-plugin-astro"
+      dev-deps:
+        dependency-type: development
+        exclude-patterns:
+          - "astro"
+          - "@astrojs/*"
+          - "astro-*"
+          - "eslint-plugin-astro"
+          - "prettier-plugin-astro"
+      prod-deps:
+        dependency-type: production
+        exclude-patterns:
+          - "astro"
+          - "@astrojs/*"
+          - "astro-*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      gh-actions:
+        patterns:
+          - "*"

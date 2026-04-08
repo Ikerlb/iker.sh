@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.astro/
+public/mandelrust/
+bun.lock
+bun.lockb

@@ -239,7 +239,14 @@ a {
 
   // Collapsible day blocks (used by the AoC project page).
   details.day {
-    margin: 2px 0;
+    border-top: 1px dashed var(--border);
+    padding: 8px 0;
+    margin: 0;
+
+    &:first-of-type {
+      border-top: none;
+      padding-top: 4px;
+    }
 
     > summary {
       cursor: pointer;
@@ -272,10 +279,10 @@ a {
     }
 
     &[open] {
-      margin: 12px 0 20px;
+      padding-bottom: 16px;
 
       > summary {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         color: var(--orange);
 
         &::before {

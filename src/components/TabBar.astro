@@ -1,0 +1,33 @@
+---
+interface Tab {
+  id: string;
+  label: string;
+  href: string;
+}
+
+interface Props {
+  active: "about" | "projects" | "reading";
+}
+
+const { active } = Astro.props;
+
+const tabs: Tab[] = [
+  { id: "about", label: "about", href: "/" },
+  { id: "projects", label: "projects", href: "/projects/" },
+  { id: "reading", label: "reading", href: "/reading/" },
+];
+---
+
+<nav class="tab-bar" aria-label="primary">
+  {
+    tabs.map((tab) => (
+      <a
+        class:list={["tab", { active: tab.id === active }]}
+        data-tab={tab.id}
+        href={tab.href}
+      >
+        <span class="tab-icon">~</span> {tab.label}
+      </a>
+    ))
+  }
+</nav>

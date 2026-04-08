@@ -1,0 +1,37 @@
+---
+export interface FileEntry {
+  name: string;
+  size: string;
+  date: string;
+  href?: string;
+  owner?: string;
+  perms?: string;
+  isDir?: boolean;
+}
+
+interface Props {
+  entries: FileEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<div class="file-listing">
+  {
+    entries.map((e) => {
+      const Tag = e.href ? "a" : "div";
+      const props = e.href ? { href: e.href } : {};
+      return (
+        <Tag class="row" {...props}>
+          <span class="perms">{e.perms ?? "drwxr-xr-x"}</span>
+          <span class="owner">{e.owner ?? "iker"}</span>
+          <span class="size">{e.size}</span>
+          <span class="date">{e.date}</span>
+          <span class:list={["name", { dir: e.isDir !== false }]}>
+            {e.name}
+          </span>
+        </Tag>
+      );
+    })
+  }
+</div>

@@ -1,0 +1,24 @@
+---
+interface Props {
+  path?: string;
+  command?: string;
+}
+
+const { path = "~", command } = Astro.props;
+---
+
+<div class="prompt-line">
+  <span class="prompt"
+    ><span class="user">iker</span>@<span class="host">iker.sh</span>:<span
+      class="path">{path}</span
+    ><span class="dollar"> $</span></span
+  >
+  {
+    command && (
+      <>
+        {" "}
+        <span class="command">{command}</span>
+      </>
+    )
+  }
+</div>

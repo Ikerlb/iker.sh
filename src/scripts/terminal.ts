@@ -1,130 +1,24 @@
-// terminal.ts — typewriter intro, SPA-like navigation, and the REPL.
+// terminal.ts — SPA-like navigation plus the REPL that powers the home page.
 // Loaded from Terminal.astro on every page; everything is feature-detected
 // so the site degrades gracefully without JS.
 
-const INTRO_KEY = "iker.sh:intro-played";
 const REPL_HISTORY_KEY = "iker.sh:repl-history";
+const AUTORUN_KEY = "iker.sh:autorun-played";
 const MAX_HISTORY = 50;
 
-async function init(): Promise<void> {
+function init(): void {
   setupNavigation();
-  await setupPage();
+  setupPage();
 }
 
 // Runs on first load and after every SPA navigation, because the pane's
 // innerHTML is replaced wholesale and any per-page closures are discarded.
-async function setupPage(): Promise<void> {
-  const introDone = setupIntro();
-  setupRepl(introDone);
+function setupPage(): void {
+  setupRepl();
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Typewriter intro
-// ──────────────────────────────────────────────────────────────────────────────
-
-function setupIntro(): Promise<void> {
-  return new Promise<void>((resolve) => {
-    const intro = document.querySelector<HTMLElement>("[data-intro]");
-    const skipHint = document.querySelector<HTMLElement>("[data-skip-hint]");
-
-    if (!intro || window.location.pathname !== "/") {
-      resolve();
-      return;
-    }
-
-    // Once-per-session gate.
-    let alreadyPlayed = false;
-    try {
-      alreadyPlayed = sessionStorage.getItem(INTRO_KEY) === "1";
-    } catch {
-      /* sessionStorage may be unavailable (private mode); just play it. */
-    }
-    if (alreadyPlayed) {
-      resolve();
-      return;
-    }
-
-    const promptLine = intro.querySelector<HTMLElement>(".prompt-line");
-    const commandSpan =
-      promptLine?.querySelector<HTMLElement>(".command") ?? null;
-    const catOutput = intro.querySelector<HTMLElement>(".cat-output");
-    if (!promptLine || !commandSpan || !catOutput) {
-      resolve();
-      return;
-    }
-
-    const fullCommand = commandSpan.textContent ?? "";
-    commandSpan.textContent = "";
-    catOutput.style.opacity = "0";
-    catOutput.style.transition = "opacity 0.2s ease-in";
-
-    if (skipHint) skipHint.hidden = false;
-
-    let skipped = false;
-    let timeoutId: number | null = null;
-    const sleep = (ms: number) =>
-      new Promise<void>((res) => {
-        timeoutId = window.setTimeout(res, ms);
-      });
-
-    function finish(): void {
-      if (skipped) return;
-      skipped = true;
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-      if (commandSpan) commandSpan.textContent = fullCommand;
-      if (catOutput) catOutput.style.opacity = "1";
-      if (skipHint) skipHint.hidden = true;
-      document.removeEventListener("click", onClick, true);
-      document.removeEventListener("keydown", onKey, true);
-      try {
-        sessionStorage.setItem(INTRO_KEY, "1");
-      } catch {
-        /* ignore */
-      }
-      resolve();
-    }
-
-    function onClick(e: MouseEvent): void {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      if (target.closest("a") || target.closest(".tab")) return;
-      finish();
-    }
-
-    function onKey(e: KeyboardEvent): void {
-      // Don't swallow modifier-only events or keystrokes meant for form fields.
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.target instanceof HTMLInputElement) return;
-      finish();
-      e.preventDefault();
-    }
-
-    document.addEventListener("click", onClick, true);
-    document.addEventListener("keydown", onKey, true);
-
-    void (async () => {
-      const delay = Math.max(25, Math.min(55, 700 / fullCommand.length));
-      await sleep(400);
-      if (skipped) return;
-      for (let i = 0; i < fullCommand.length; i++) {
-        if (skipped) return;
-        commandSpan.textContent = fullCommand.substring(0, i + 1);
-        await sleep(delay);
-      }
-      if (skipped) return;
-      await sleep(150);
-      if (skipped) return;
-      catOutput.style.opacity = "1";
-      finish();
-    })();
-  });
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// REPL (interactive prompt on the about page)
+// REPL (interactive prompt on the home page)
 // ──────────────────────────────────────────────────────────────────────────────
 
 interface ReplContext {
@@ -133,7 +27,7 @@ interface ReplContext {
   projects: string[];
 }
 
-function setupRepl(introDone: Promise<void>): void {
+function setupRepl(): void {
   const repl = document.querySelector<HTMLElement>("[data-repl]");
   if (!repl) return;
 
@@ -245,14 +139,119 @@ function setupRepl(introDone: Promise<void>): void {
       draft = "";
       return;
     }
+
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const completed = completeInput(input.value, ctx);
+      if (completed.value !== input.value) {
+        input.value = completed.value;
+        moveCaretToEnd(input);
+      }
+      if (completed.suggestions.length > 1) {
+        appendReplPrompt(historyEl, input.value);
+        appendReplLine(
+          historyEl,
+          completed.suggestions
+            .map((s) => `<span class="accent">${escapeHtml(s)}</span>`)
+            .join("  "),
+          true,
+        );
+        scrollPaneToBottom();
+      }
+      return;
+    }
   });
 
-  // Auto-focus once the intro has finished, but only on devices that don't
-  // have a popup soft keyboard (so mobile visitors aren't assaulted on load).
+  // Auto-focus on devices that don't have a popup soft keyboard (so mobile
+  // visitors aren't assaulted on load).
   const isTouch = window.matchMedia("(pointer: coarse)").matches;
-  if (!isTouch) {
-    void introDone.then(() => input.focus({ preventScroll: true }));
+  if (!isTouch) input.focus({ preventScroll: true });
+
+  // Auto-run a command on first load (once per session) if the REPL asked
+  // for one via the [data-autorun] attribute. This is how the home page
+  // boots with `cat about.md` already printed without a static intro block.
+  const autorun = repl.dataset.autorun;
+  if (autorun) {
+    let played = false;
+    try {
+      played = sessionStorage.getItem(AUTORUN_KEY) === "1";
+    } catch {
+      /* ignore */
+    }
+    if (!played) {
+      try {
+        sessionStorage.setItem(AUTORUN_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      runReplCommand(autorun, ctx);
+    }
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Tab completion
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface CompletionResult {
+  value: string;
+  suggestions: string[];
+}
+
+function completeInput(value: string, ctx: ReplContext): CompletionResult {
+  // Tokenize preserving trailing whitespace state: if the user already typed
+  // a space, we're completing a fresh arg, not extending the previous token.
+  const trailing = /\s$/.test(value);
+  const tokens = value.split(/\s+/).filter((t) => t.length > 0);
+
+  // First-token completion: command names (including aliases).
+  if (tokens.length === 0 || (tokens.length === 1 && !trailing)) {
+    const prefix = tokens[0] ?? "";
+    const names = Object.keys(REPL_COMMANDS);
+    const matches = names.filter((n) => n.startsWith(prefix)).sort();
+    if (matches.length === 0) return { value, suggestions: [] };
+    if (matches.length === 1)
+      return { value: matches[0] + " ", suggestions: [] };
+    const common = longestCommonPrefix(matches);
+    return {
+      value: common.length > prefix.length ? common : value,
+      suggestions: matches,
+    };
+  }
+
+  // Arg completion: depends on the command.
+  const cmd = tokens[0];
+  const lastToken = trailing ? "" : tokens[tokens.length - 1];
+  const head = trailing ? tokens.join(" ") : tokens.slice(0, -1).join(" ");
+
+  let candidates: string[] = [];
+  if (cmd === "cat") candidates = ["about.md"];
+  else if (cmd === "open") candidates = ctx.projects;
+  else if (cmd === "cd") candidates = ["projects", "reading", "~"];
+  else return { value, suggestions: [] };
+
+  const matches = candidates.filter((c) => c.startsWith(lastToken)).sort();
+  if (matches.length === 0) return { value, suggestions: [] };
+  if (matches.length === 1) {
+    return { value: `${head} ${matches[0]} `, suggestions: [] };
+  }
+  const common = longestCommonPrefix(matches);
+  return {
+    value: common.length > lastToken.length ? `${head} ${common}` : value,
+    suggestions: matches,
+  };
+}
+
+function longestCommonPrefix(strs: string[]): string {
+  if (strs.length === 0) return "";
+  let prefix = strs[0];
+  for (let i = 1; i < strs.length; i++) {
+    while (strs[i].indexOf(prefix) !== 0) {
+      prefix = prefix.slice(0, -1);
+      if (prefix === "") return "";
+    }
+  }
+  return prefix;
 }
 
 function runReplCommand(raw: string, ctx: ReplContext): void {
@@ -282,6 +281,9 @@ const REPL_COMMANDS: Record<string, CommandHandler> = {
     appendReplLine(
       ctx.historyEl,
       `commands:
+  <span class="accent">about</span>             print about.md (alias for cat about.md)
+  <span class="accent">projects</span>          open the projects page
+  <span class="accent">reading</span>           open the reading log
   <span class="accent">help</span>              show this message
   <span class="accent">ls</span>                list files in ~
   <span class="accent">cat</span> &lt;file&gt;        print a file
@@ -293,9 +295,21 @@ const REPL_COMMANDS: Record<string, CommandHandler> = {
   <span class="accent">history</span>           show command history
   <span class="accent">clear</span>             clear the terminal
 
-<span class="dim">tips: ↑/↓ recall commands · ctrl+l clear · ctrl+c cancel</span>`,
+<span class="dim">tips: ↑/↓ recall commands · tab complete · ctrl+l clear · ctrl+c cancel</span>`,
       true,
     );
+  },
+
+  about: (_, ctx) => {
+    REPL_COMMANDS.cat(["about.md"], ctx);
+  },
+
+  projects: (_, __) => {
+    void loadUrl("/projects/", true);
+  },
+
+  reading: (_, __) => {
+    void loadUrl("/reading/", true);
   },
 
   ls: (args, ctx) => {
@@ -589,14 +603,14 @@ async function loadUrl(href: string, push: boolean): Promise<void> {
     window.scrollTo(0, 0);
 
     // Re-run page-specific setup since the pane DOM was replaced.
-    await setupPage();
+    setupPage();
   } catch {
     window.location.href = href;
   }
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => void init());
+  document.addEventListener("DOMContentLoaded", init);
 } else {
-  void init();
+  init();
 }
